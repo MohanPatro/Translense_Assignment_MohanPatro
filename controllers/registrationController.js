@@ -13,7 +13,6 @@ const OTP_EXPIRATION_TIME = 5 * 60 * 1000;
 
 
 
-
 exports.addVendorAndOwnerDetails = async (req, res) => {
     let transaction;
     let isTranSactionCommited=1;
@@ -58,7 +57,7 @@ exports.addVendorAndOwnerDetails = async (req, res) => {
     if (error) {
       message = "Validation error";
       status = 400;
-      await baseResponse(res, status, message, null, error);
+      return await baseResponse(res, status, message, null, error);
     }
 
     const { vendor_information, owner_information } = req.body;
@@ -69,12 +68,13 @@ exports.addVendorAndOwnerDetails = async (req, res) => {
 
 
     const checkVendorExists=await registrationServices.checkIfExistsWithFilter(Vendor,filter);
+    console.log(checkVendorExists);
 
     if (checkVendorExists) {
       status = 401;
       message = "Vendor Already exists with given email";
       // return res.status(401).json({success:false, message: 'Vendor Already exists with given email'});
-      await baseResponse(res, status, message);
+      return await baseResponse(res, status, message);
     }
 
     filter= {
@@ -87,7 +87,7 @@ exports.addVendorAndOwnerDetails = async (req, res) => {
       status = 401;
       message = "Owner Already exists with given email";
       // return res.status(401).json({success:false, message: 'Owner Already exists with given email'});
-      await baseResponse(res, status, message);
+      return await baseResponse(res, status, message);
     }
     transaction = await sequelize.transaction();
     isTranSactionCommited=0;
@@ -134,7 +134,7 @@ exports.addVendorAndOwnerDetails = async (req, res) => {
     message = "Vendor and Owner details added successfully!";
     status = 201;
     //   res.status(201).json({ message: 'Vendor and Owner details added successfully!' });
-    await baseResponse(res, status, message, {});
+    return await baseResponse(res, status, message, {});
   } catch (error) {
     console.log(error);
     if(isTranSactionCommited!=1)
@@ -142,7 +142,7 @@ exports.addVendorAndOwnerDetails = async (req, res) => {
         await transaction.rollback();
 
     }
-    await baseResponse(res, 500, "Internal Server Error", {}, error);
+    return await baseResponse(res, 500, "Internal Server Error", {}, error.message);
   }
 };
 
@@ -160,9 +160,9 @@ exports.getAllVendorDetails = async (req, res) => {
     }
     
 
-    await baseResponse(res, 200, "Vendors retrieved successfully", vendorsDetailWithOwners);
+    return await baseResponse(res, 200, "Vendors retrieved successfully", vendorsDetailWithOwners);
   } catch (error) {
-    await baseResponse(
+    return await baseResponse(
       res,
       500,
       "Internal Server Error",
@@ -189,17 +189,17 @@ exports.getendorDetailsById = async (req, res) => {
     if (!vendor) {
       message = "Vendor not found";
       status = 404;
-      await baseResponse(res, status, message);
+      return await baseResponse(res, status, message);
     }
 
 
     message = "Vendor retrieved successfully";
     status = 200;
 
-    await baseResponse(res, status, message, vendor);
+   return  await baseResponse(res, status, message, vendor);
 
   } catch (error) {
-    await baseResponse(
+    return await baseResponse(
       res,
       500,
       "Internal Server Error",
@@ -225,9 +225,9 @@ exports.sendOtp = async (req, res) => {
     let message = "OTP sent successfully!";
     let status = 200;
 
-    await baseResponse(res, status, message, generatedOTP);
+    return await baseResponse(res, status, message, generatedOTP);
   } catch (error) {
-    await baseResponse(res, 500, "Internal server error", {}, error);
+    return await baseResponse(res, 500, "Internal server error", {}, error.message);
   }
 };
 
@@ -255,22 +255,22 @@ exports.verifyOtp = async (req, res) => {
       // return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
       status = 400;
       message = "OTP has expired. Please request a new one.";
-      await baseResponse(res, status, message);
+      return await baseResponse(res, status, message);
     }
 
     if (generatedOTP == otp) {
       status = 200;
       message = "OTP verified successfully!";
       // res.json({ message: 'OTP verified successfully!' });
-      await baseResponse(res, status, message);
+      return await baseResponse(res, status, message);
     } else {
       status = 400;
       message = "Invalid OTP. Please try again.";
       // res.status(400).json({ message: 'Invalid OTP. Please try again.' });
-      await baseResponse(res, status, message);
+      return await baseResponse(res, status, message);
     }
   } catch (error) {
-    await baseResponse(res, 500, "Internal server error");
+    return await baseResponse(res, 500, "Internal server error",{},error.message);
   }
 };
 
@@ -321,7 +321,7 @@ exports.updateVendorData=async(req,res)=>{
           if (error) {
             message = "Validation error";
             status = 400;
-            await baseResponse(res, status, message, null, error);
+           return await baseResponse(res, status, message, null, error);
           }
       
           const { vendor_information, owner_information } = req.body;
@@ -345,7 +345,7 @@ exports.updateVendorData=async(req,res)=>{
                 status = 401;
                 message = "Vendor Already exists with given email";
                 // return res.status(401).json({success:false, message: 'Vendor Already exists with given email'});
-                await baseResponse(res, status, message);
+                return await baseResponse(res, status, message);
               }
           }
 
@@ -364,7 +364,7 @@ exports.updateVendorData=async(req,res)=>{
             status = 401;
             message = "Owner Already exists with given email";
             // return res.status(401).json({success:false, message: 'Owner Already exists with given email'});
-            await baseResponse(res, status, message);
+            return await baseResponse(res, status, message);
           }
       }
 
@@ -404,7 +404,7 @@ exports.updateVendorData=async(req,res)=>{
             await transaction.rollback();
 
         }
-        await baseResponse(res, 500, "Internal Server Error", {}, error);
+        return await baseResponse(res, 500, "Internal Server Error", {}, error.message);
     }
 }
 
@@ -475,7 +475,7 @@ exports.updateVendorData=async(req,res)=>{
 //             await transaction.rollback();
 //         }
 
-//         return await baseResponse(res, 500, "Internal server error", {}, error);
+//         return await baseResponse(res, 500, "Internal server error", {}, error.message);
 //     }
 // }
 
@@ -529,7 +529,7 @@ exports.updateVendorData=async(req,res)=>{
 //     }
 //     catch(error)
 //     {
-//         return await baseResponse(res, 500, "Internal server error", {}, error);
+//         return await baseResponse(res, 500, "Internal server error", {}, error.message);
 //     }
 // }
 

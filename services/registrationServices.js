@@ -96,8 +96,11 @@ exports.checkIfExistsWithFilter=async(Model,filter)=>{
         const data = await Model.findOne({
               where:filter
             });
+
+            console.log(data);
+            // console.log(data.length);
         
-            if(data && data.length>0)
+            if(data)
             {
                 return true;
             }
